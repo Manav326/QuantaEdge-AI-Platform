@@ -137,7 +137,7 @@ To inspect startup output:
 docker logs quantaedge-deepseek-harness --tail 80
 ~~~
 
-The Harness UI uses a dedicated bridge network, not the connector's host network. Its requests to QuantaEdge go through the HTTPS tunnel URL.
+The Harness UI uses a dedicated bridge network, not the connector's host network. Its requests to QuantaEdge go through the HTTPS tunnel URL. The native add-on loader cache is directed to `/home/node/.npm/native-addon-cache` on the persistent npm volume because `/tmp` is intentionally mounted `noexec`; Node must load native `.node` shared libraries from an executable filesystem.
 
 ## 5. Configure the Docker Harness container
 

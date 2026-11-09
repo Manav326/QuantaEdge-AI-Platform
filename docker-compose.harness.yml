@@ -36,6 +36,9 @@ services:
       DSH_HOME: /home/node/.dsh
       NPM_CONFIG_UPDATE_NOTIFIER: "false"
       NPM_CONFIG_FUND: "false"
+      # Native .node modules cannot be dlopen()d from the noexec /tmp tmpfs.
+      # Store the addon loader cache on the persistent, executable npm volume.
+      NARB_NATIVE_CACHE_DIR: /home/node/.npm/native-addon-cache
     working_dir: /workspace
     user: "1000:1000"
     init: true
