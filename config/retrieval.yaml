@@ -1,0 +1,10 @@
+chunking:
+  max_characters: 1800
+  overlap_characters: 240
+  embedding_batch_size: 16
+search:
+  top_k: 6
+  minimum_similarity: 0.25
+  vector_metric: cosine
+  require_ready_documents: true
+  allow_general_knowledge_without_evidence: false

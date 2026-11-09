@@ -1,0 +1,47 @@
+name: quantaedge-ai-platform
+
+# On the Windows AI laptop, FastAPI and the ARQ worker run natively so they
+# can call Ollama at 127.0.0.1 without exposing Ollama on the network.
+# Docker runs only stateful infrastructure; Docker Desktop's WSL disk image
+# is configured separately under D:\QuantaEdgeAI\docker\desktop-data.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-quantaedge_ai}
+      POSTGRES_USER: ${POSTGRES_USER:-qeai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts\initialize.ps1 first}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-qeai} -d ${POSTGRES_DB:-quantaedge_ai}"]
+      interval: 5s
+      timeout: 5s
+      retries: 25
+    restart: unless-stopped
+    networks: [private]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1000"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [private]
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  private:
+    driver: bridge

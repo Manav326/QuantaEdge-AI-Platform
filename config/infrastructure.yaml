@@ -1,0 +1,12 @@
+service:
+  name: QuantaEdge AI Platform
+  api_version: v1
+  request_timeout_seconds: 180
+  max_upload_mb: 30
+  max_concurrent_generation_requests: 1
+  worker:
+    max_jobs: 1
+    job_timeout_seconds: 900
+storage:
+  upload_directory: uploads
+  processed_directory: processed

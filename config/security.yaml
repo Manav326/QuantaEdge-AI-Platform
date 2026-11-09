@@ -1,0 +1,26 @@
+authentication:
+  header: X-API-Key
+  minimum_key_length: 32
+  allow_anonymous_application_requests: false
+  scopes:
+    chat: chat
+    learning: learning
+    embeddings: embeddings
+    models: models:read
+    knowledge_read: knowledge:read
+    knowledge_write: knowledge:write
+    memory_read: memory:read
+    memory_write: memory:write
+    memory_delete: memory:delete
+    administration: admin:read
+knowledge_ingestion:
+  required_rights_status:
+    - permission_granted
+    - owned_content
+    - public_domain
+  require_rights_attestation: true
+  reject_pending_or_unknown_rights: true
+network:
+  api_bind_host: 127.0.0.1
+  database_bind_host: 127.0.0.1
+  ollama_public_access: false

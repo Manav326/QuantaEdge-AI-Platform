@@ -1,0 +1,24 @@
+tasks:
+  general_chat:
+    model_profile: qwen3.5-teacher-2b
+    prompt: general_assistant
+    parameters:
+      temperature: 0.2
+      top_p: 0.9
+      num_ctx: 4096
+      num_predict: 700
+      think: false
+
+  learning_answer:
+    model_profile: qwen3.5-teacher-2b
+    prompt: classroom_teacher
+    parameters:
+      temperature: 0.2
+      top_p: 0.9
+      num_ctx: 4096
+      num_predict: 500
+      think: false
+
+  embedding:
+    model_profile: qwen3-embedding-0.6b
+    batch_size: 16

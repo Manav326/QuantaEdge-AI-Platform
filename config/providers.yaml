@@ -1,0 +1,7 @@
+providers:
+  ollama-local:
+    type: ollama
+    base_url_env: OLLAMA_BASE_URL
+    default_base_url: http://127.0.0.1:11434
+    enabled: true
+    capabilities: [chat, embeddings]

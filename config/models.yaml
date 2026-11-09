@@ -1,0 +1,23 @@
+defaults:
+  chat: qwen3.5-teacher-2b
+  embedding: qwen3-embedding-0.6b
+
+models:
+  qwen3.5-teacher-2b:
+    display_name: Qwen3.5 Teacher 2B (local development)
+    provider: ollama-local
+    model_id: qwen3.5:2b-q4_K_M
+    enabled: true
+    capabilities: [chat]
+    context_window: 4096
+    quantization: Q4_K_M
+    quality_status: development_only
+
+  qwen3-embedding-0.6b:
+    display_name: Qwen3 Embedding 0.6B
+    provider: ollama-local
+    model_id: qwen3-embedding:0.6b
+    enabled: true
+    capabilities: [embeddings]
+    dimensions: 1024
+    quality_status: candidate

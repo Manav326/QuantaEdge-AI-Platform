@@ -1,0 +1,49 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jsonl
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Runtime data and model artefacts
+.local-data/
+data/
+models/
+*.gguf
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.bin
+*.sqlite*
+
+# Logs, backups and local editor files
+logs/
+backups/
+*.log
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Cloudflare tunnel credentials and local machine configuration
+.cloudflared/
+**/.cloudflared/
+*-credentials.json
+*.crt
+*.cer
+*.token

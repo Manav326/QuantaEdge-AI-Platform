@@ -1,0 +1,28 @@
+academic_hierarchy:
+  - institution
+  - course
+  - subject
+  - chapter
+  - section
+  - concept
+
+supported_curricula:
+  NCERT:
+    enabled: true
+    content_ingestion_requires_rights_attestation: true
+    initial_courses: [CLASS_6, CLASS_7, CLASS_8, CLASS_9, CLASS_10, CLASS_11, CLASS_12]
+    languages: [en, hi, ur]
+
+metadata_fields:
+  - curriculum
+  - course_id
+  - subject_id
+  - book_title
+  - edition
+  - publication_year
+  - chapter_id
+  - chapter_title
+  - section_title
+  - concept_id
+  - language
+  - source_page
