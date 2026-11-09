@@ -13,14 +13,23 @@ if ($LASTEXITCODE -ne 0 -or $dockerOs.Trim() -ne "linux") {
 
 $composeArgs = @("-f", "docker-compose.yml", "-f", "docker-compose.harness.yml")
 
+# Check running containers without inspecting a container that may not exist.
+# On Windows PowerShell 5.1, Docker's "no such object" stderr can become a
+# terminating NativeCommandError when ErrorActionPreference is Stop.
+$runningContainers = & docker ps --filter "name=quantaedge-deepseek-harness" --format "{{.Names}}" 2>$null
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not query Docker containers. Check that Docker Desktop is running."
+}
+$harnessIsRunning = $runningContainers -contains "quantaedge-deepseek-harness"
+
 # Avoid colliding with an unrelated local service on the UI port.
-$existingState = & docker inspect --format '{{.State.Status}}' quantaedge-deepseek-harness 2>$null
-if ($existingState -ne "running") {
+if (-not $harnessIsRunning) {
     $listener = Get-NetTCPConnection -LocalPort 3080 -State Listen -ErrorAction SilentlyContinue |
         Select-Object -First 1
     if ($listener) {
         $owner = Get-Process -Id $listener.OwningProcess -ErrorAction SilentlyContinue
-        throw "Port 3080 is already used by PID $($listener.OwningProcess) ($($owner.ProcessName)). Stop that service or choose another port."
+        $processName = if ($owner) { $owner.ProcessName } else { "unknown" }
+        throw "Port 3080 is already used by PID $($listener.OwningProcess) ($processName). Stop that service or choose another port."
     }
 }
 
