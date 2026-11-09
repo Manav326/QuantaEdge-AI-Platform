@@ -23,9 +23,9 @@ if ($LASTEXITCODE -ne 0 -or $dockerOs.Trim() -ne "linux") {
 $env:CLOUDFLARE_TUNNEL_TOKEN_FILE = ($TokenPath -replace '\\', '/')
 
 Write-Host "Starting the Cloudflare Tunnel connector in Docker..." -ForegroundColor Green
-& docker compose --profile cloudflare up -d cloudflared
+& docker compose -f docker-compose.yml -f docker-compose.cloudflare.yml up -d cloudflared
 if ($LASTEXITCODE -ne 0) {
     throw "Could not start cloudflared. Verify Docker Desktop host networking (4.34+) is enabled and the secret file is readable."
 }
 
-& docker compose ps cloudflared
+& docker compose -f docker-compose.yml -f docker-compose.cloudflare.yml ps cloudflared
