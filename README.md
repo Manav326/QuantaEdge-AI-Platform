@@ -8,7 +8,7 @@ Standalone, API-first AI server for QuantaEdge and other authorised applications
 - **Other machine:** QuantaEdge web/mobile/admin applications and business database. Its backend calls `https://ai-api.quantaedge.in` over HTTPS.
 - **Not in Git:** model weights, Docker Desktop WSL virtual disk, database volumes, Redis data, uploaded documents, licensed NCERT files, secrets or backups.
 
-The API listens on `127.0.0.1:8000`. Cloudflare Tunnel on this same AI laptop forwards `ai-api.quantaedge.in` to that local address. Ollama listens on `127.0.0.1:11434` and is never exposed to the LAN or internet. DeepSeek Harness is configured as another client through the separate OpenAI-compatible `/compat/v1` surface; it uses the same Model Gateway and Ollama runtime.
+The API listens on `127.0.0.1:8000`. The cloudflared Docker container uses Docker Desktop host networking to forward `ai-api.quantaedge.in` and the separately Access-protected `harness-ai-api.quantaedge.in` to that local address. Ollama listens on `127.0.0.1:11434` and is never exposed to the LAN or internet. DeepSeek Harness is configured as another client through the separate OpenAI-compatible `/compat/v1` surface; it uses the same Model Gateway and Ollama runtime.
 
 ## Architecture
 
@@ -153,7 +153,7 @@ The application machine remains authoritative for learner identity, institution 
 
 ## Cloudflare Tunnel
 
-Install `cloudflared` natively on Windows and configure `ai-api.quantaedge.in` to route to `http://localhost:8000`. See [`ops/cloudflared/README.md`](ops/cloudflared/README.md). The tunnel connector runs on the AI laptop, not on the application machine. Never tunnel Ollama (11434), PostgreSQL (5432) or Redis (6379).
+Create a remotely managed tunnel in Cloudflare and run the cloudflared connector in Docker Desktop using the cloudflare Compose profile. See [`ops/cloudflared/README.md`](ops/cloudflared/README.md). The connector runs on the AI laptop, not on the application machine. Never tunnel Ollama (11434), PostgreSQL (5432), Redis (6379) or the Harness UI.
 
 ## Curriculum and rights boundary
 
