@@ -159,6 +159,30 @@ Install `cloudflared` natively on Windows and configure `ai-api.quantaedge.in` t
 
 The repository contains curriculum metadata and ingestion code, not NCERT books or extracted textbook passages. Ingest a source only after the intended use is covered by documented rights, including storage, extraction, embedding, retrieval, display and generated derivatives. The API's rights attestation is a technical gate, not legal verification.
 
+## Download licensed textbooks from QuantaEdge GHCR
+
+The class-wise textbook source is maintained in the separate `Manav326/QuantaEdge` repository and its GitHub Container Registry packages. This AI Platform repository contains the downloader code only; textbook PDFs, model files, credentials and download reports stay outside Git.
+
+From PowerShell in this repository, run:
+
+```powershell
+.\scripts\download-quantaedge-textbooks.ps1
+```
+
+By default, the script downloads every book from all fourteen class/language images (Classes 6–12, Hindi and English) into `D:\QuantaEdgeAI\downloads\textbooks`, organized by class and language. Each folder contains its registry `index.json` and a `books` directory of complete PDFs. A `download-report.json` records the registries completed.
+
+You can select one class or language:
+
+```powershell
+.\scripts\download-quantaedge-textbooks.ps1 -ClassNo 6
+.\scripts\download-quantaedge-textbooks.ps1 -Language hindi
+.\scripts\download-quantaedge-textbooks.ps1 -ClassNo 8 -Language english
+```
+
+Docker Desktop must be running, and Docker must be authenticated to `ghcr.io` with an account that has `read:packages` access to the QuantaEdge textbook packages. The script selects this repository's `.venv` Python when available, otherwise the active `python` on `PATH`; it installs `PyMuPDF>=1.24,<2` into that environment only when missing. It checks the registry metadata, canonical whole-book paths, SHA-256 hashes and PDF page counts before updating the destination. Existing PDFs with matching hashes are reused.
+
+The downloader reads only complete books already published in the QuantaEdge GHCR registry. It does not fetch arbitrary URLs or fall back to individual chapter PDFs. A failed registry is recorded as a failed run and is not marked complete. Set `QUANTAEDGE_TEXTBOOK_DOWNLOAD_DIR` or pass `-OutputRoot` to choose another destination. Do not commit downloaded books to Git; keep GHCR packages private according to the applicable licence terms.
+
 ## Current scope and release status
 
 This is an initial development baseline: API gateway, logical model routing, Ollama provider, 1,024-dimension embedding schema, knowledge ingestion queue, curriculum-filtered vector retrieval, source metadata, scoped API keys and Windows lifecycle scripts. Learner memory lifecycle, hybrid search, reranking, vision ingestion, full evaluation suite, rate limiting, streaming SSE and production observability remain planned work. Do not use real learner or confidential data until the security release gates in `SECURITY.md` are implemented and reviewed.
