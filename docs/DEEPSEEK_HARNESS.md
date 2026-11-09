@@ -150,7 +150,7 @@ Add or merge the following provider entry. Replace both placeholders locally wit
 
 If the file already has an llm-pi-ai entry, merge the providers.quantaedge.headers fields into that entry. Do not add a duplicate llm-pi-ai item or discard other configured providers/options. If Harness runs with a custom profile, use that profile's directory instead of web.
 
-The profile lives in the persistent Harness home volume (the container's DSH_HOME, commonly /home/node/.dsh for Node-based images), **not** in the agent workspace. Restrict access to this volume and include it in protected backups. These headers are applied to model discovery and inference requests. Harness re-reads profile configuration on the next request, so a restart is not normally needed.
+The profile lives in the persistent Harness home volume (the container's DSH_HOME, commonly /home/node/.dsh for Node-based images), **not** in the agent workspace. The two header values are stored as plain text in this file: protect the volume with host access controls and encrypted backups, and never mount it into the agent workspace. These headers are applied to model discovery and inference requests. Harness re-reads profile configuration on the next request, so a restart is not normally needed.
 
 ### 4.3 Keep the Harness web UI local
 
