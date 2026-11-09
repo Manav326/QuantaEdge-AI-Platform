@@ -65,3 +65,12 @@ def test_usage_always_includes_total_tokens():
         "completion_tokens": 9,
         "total_tokens": 20,
     }
+
+
+def test_string_stop_sequence_becomes_ollama_stop_list():
+    payload = OpenAIChatCompletionRequest(
+        model="qwen3.5-teacher-2b",
+        messages=[{"role": "user", "content": "Hello"}],
+        stop="END",
+    )
+    assert _inference_overrides(payload)["stop"] == ["END"]
