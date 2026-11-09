@@ -15,6 +15,20 @@ OpenAI-style non-streaming chat request with a QuantaEdge logical profile name.
 }
 ```
 
+
+## DeepSeek Harness / OpenAI-compatible client
+
+DeepSeek Harness and other OpenAI Chat Completions clients use the isolated compatibility prefix `/compat/v1`. This keeps the existing QuantaEdge application contract under `/v1` unchanged.
+
+- `GET /compat/v1/models` — OpenAI model-list envelope; requires `models:read`.
+- `POST /compat/v1/chat/completions` — OpenAI-style chat completion; requires `chat`.
+- Authentication accepts either `Authorization: Bearer <service-key>` or the existing `X-API-Key: <service-key>` header.
+- Use the logical model ID `qwen3.5-teacher-2b`; never expose the underlying Ollama model tag to clients.
+
+The compatibility endpoint supports non-streaming and SSE streaming chat, text messages, function tool definitions and tool-call history. Output limits, temperature, top-p, stop sequences, seed and JSON response modes are mapped to Ollama options. Tool-call transport does not certify the selected model's ability to use tools reliably. The current configured model is text-only; vision, audio, Responses and Anthropic protocols are not provided here.
+
+See [DeepSeek Harness setup and verification](DEEPSEEK_HARNESS.md) for the provider values, local smoke tests, Windows credential setup and Cloudflare Tunnel boundary.
+
 ## POST /v1/embeddings
 
 ```json

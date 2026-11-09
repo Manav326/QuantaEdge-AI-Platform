@@ -14,7 +14,22 @@ class ClientPrincipal:
     scopes: frozenset[str]
 
 
-async def authenticate_client(x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None) -> ClientPrincipal:
+def _extract_api_key(x_api_key: str | None, authorization: str | None) -> str | None:
+    """Accept existing X-API-Key clients and standard Bearer-auth clients."""
+    bearer_key = None
+    if authorization:
+        scheme, separator, credentials = authorization.partition(" ")
+        if separator and scheme.lower() == "bearer" and credentials.strip():
+            bearer_key = credentials.strip()
+    if x_api_key and bearer_key and not hmac.compare_digest(x_api_key, bearer_key):
+        return None
+    return bearer_key or x_api_key
+
+
+async def authenticate_client(
+    x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
+    authorization: Annotated[str | None, Header(alias="Authorization")] = None,
+) -> ClientPrincipal:
     settings = get_settings()
     if not settings.api_keys:
         raise HTTPException(status_code=503, detail="API authentication is not configured")
@@ -26,12 +41,13 @@ async def authenticate_client(x_api_key: Annotated[str | None, Header(alias="X-A
     }
     if not valid_records:
         raise HTTPException(status_code=503, detail="No sufficiently strong API credentials are configured")
-    if not x_api_key:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing API key")
+    supplied_key = _extract_api_key(x_api_key, authorization)
+    if not supplied_key:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid API key")
 
     for client_id, record in valid_records.items():
         expected = str(record.get("key", ""))
-        if hmac.compare_digest(x_api_key, expected):
+        if hmac.compare_digest(supplied_key, expected):
             scopes = record.get("scopes", [])
             if not isinstance(scopes, list):
                 scopes = []

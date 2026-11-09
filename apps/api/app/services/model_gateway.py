@@ -22,6 +22,23 @@ class ModelGateway:
             return OllamaProvider(base_url)
         raise ConfigurationError(f"Unsupported provider type: {provider_type}")
 
+    def prepare_chat(
+        self,
+        task_name: str,
+        requested_profile: str | None = None,
+        overrides: dict[str, Any] | None = None,
+    ):
+        """Resolve a logical chat profile once for a non-streaming or streaming call."""
+        task = self.layers.task(task_name)
+        profile_name = requested_profile or task.get("model_profile")
+        profile = self.layers.model(profile_name)
+        provider_config = self.layers.layer("providers")["providers"][profile["provider"]]
+        if "chat" not in profile.get("capabilities", []):
+            raise ConfigurationError(f"Model profile '{profile_name}' does not support chat")
+        parameters = dict(task.get("parameters", {}))
+        parameters.update(overrides or {})
+        return profile_name, profile, self._provider(provider_config), parameters
+
     async def generate(self, task_name: str, messages: list[dict[str, str]], requested_profile: str | None = None):
         task = self.layers.task(task_name)
         profile_name = requested_profile or task.get("model_profile")

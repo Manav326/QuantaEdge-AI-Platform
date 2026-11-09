@@ -37,9 +37,11 @@ if (-not (Test-Path "$root\.env")) {
     $dbPassword = New-SecretHex 32
     $adminKey = New-SecretHex 48
     $backendKey = New-SecretHex 48
+    $harnessKey = New-SecretHex 48
     $keys = [ordered]@{
         "local-admin" = @{ key = $adminKey; scopes = @("*") }
         "quantaedge-backend" = @{ key = $backendKey; scopes = @("chat", "learning", "embeddings", "models:read", "knowledge:read", "memory:read", "memory:write", "memory:delete") }
+        "deepseek-harness" = @{ key = $harnessKey; scopes = @("chat", "models:read") }
     }
     $keysJson = $keys | ConvertTo-Json -Depth 6 -Compress
     $envText = @"
@@ -59,6 +61,7 @@ API_REQUEST_TIMEOUT_SECONDS=180
     [System.IO.File]::WriteAllText("$root\.env", $envText, (New-Object System.Text.UTF8Encoding($false)))
     Write-Host "Created .env with unique random credentials. Keep it private."
     Write-Host "QuantaEdge backend API key (store in backend secret manager): $backendKey" -ForegroundColor Yellow
+    Write-Host "DeepSeek Harness API key (store in Harness provider settings): $harnessKey" -ForegroundColor Yellow
     Write-Host "Local admin API key (store securely): $adminKey" -ForegroundColor Yellow
 } else {
     Write-Host ".env already exists; left unchanged." -ForegroundColor Yellow
