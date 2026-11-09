@@ -30,8 +30,9 @@ finally {
 }
 
 $account = "$env:USERDOMAIN\$env:USERNAME"
+$accountGrant = $account + ":(OI)(CI)F"
 & icacls.exe $secretDirectory /inheritance:r /grant:r `
-    "$account`:(OI)(CI)F" `
+    $accountGrant `
     "NT AUTHORITY\SYSTEM:(OI)(CI)F" `
     "BUILTIN\Administrators:(OI)(CI)F" /T | Out-Host
 
