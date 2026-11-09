@@ -56,13 +56,13 @@ Confirm Docker Desktop host networking is enabled and Docker Desktop has restart
 .\scripts\start-cloudflared.ps1
 ~~~
 
-This starts only the cloudflared service with the cloudflare Compose profile. It does not restart PostgreSQL, Redis, the Windows API or Ollama.
+This starts only the cloudflared service using the additional docker-compose.cloudflare.yml file. It does not restart PostgreSQL, Redis, the Windows API or Ollama. Keeping the connector in a separate Compose file means ordinary infrastructure startup does not require the tunnel-token file.
 
 Check the container:
 
 ~~~powershell
-docker compose ps cloudflared
-docker compose logs --tail 60 cloudflared
+docker compose -f docker-compose.yml -f docker-compose.cloudflare.yml ps cloudflared
+docker compose -f docker-compose.yml -f docker-compose.cloudflare.yml logs --tail 60 cloudflared
 ~~~
 
 In Cloudflare → Networking → Tunnels, the connector should show Healthy/Connected. The container has no published inbound ports; it establishes outbound connections to Cloudflare.
@@ -70,13 +70,13 @@ In Cloudflare → Networking → Tunnels, the connector should show Healthy/Conn
 To stop the connector:
 
 ~~~powershell
-docker compose stop cloudflared
+docker compose -f docker-compose.yml -f docker-compose.cloudflare.yml stop cloudflared
 ~~~
 
 To start it again:
 
 ~~~powershell
-docker compose --profile cloudflare start cloudflared
+docker compose -f docker-compose.yml -f docker-compose.cloudflare.yml start cloudflared
 ~~~
 
 ## 4. Protect the Harness hostname separately
