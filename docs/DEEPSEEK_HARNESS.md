@@ -8,11 +8,11 @@ Use the dedicated OpenAI-compatible surface:
 
 | Harness location | Base URL |
 |---|---|
-| Docker Desktop container on the AI laptop | https://ai-api.quantaedge.in/compat/v1 |
+| Docker Desktop container on the AI laptop | https://harness-ai-api.quantaedge.in/compat/v1 |
 | Native Windows Harness process on the AI laptop | http://127.0.0.1:8000/compat/v1 |
-| Harness on another machine | https://ai-api.quantaedge.in/compat/v1 |
+| Harness on another machine | https://harness-ai-api.quantaedge.in/compat/v1 |
 
-**For Docker Desktop, use the HTTPS Cloudflare Tunnel URL.** The Windows API intentionally listens only on 127.0.0.1:8000. A container's 127.0.0.1 is the container itself, and host.docker.internal:8000 cannot reach a service bound only to Windows loopback. Do not change the API to bind to 0.0.0.0, publish port 8000, or expose Ollama, PostgreSQL, or Redis to make this connection work.
+**For Docker Desktop, use the HTTPS Cloudflare Tunnel URL.** The cloudflared connector itself runs as a Docker container using Docker Desktop host networking (4.34+). The API intentionally remains bound to Windows 127.0.0.1:8000; in host network mode, cloudflared can reach that Windows loopback listener via 127.0.0.1:8000. Do not change the API to bind to 0.0.0.0 or publish port 8000. See ops/cloudflared/README.md for setup.
 
 The Docker path is:
 
@@ -21,7 +21,7 @@ DeepSeek Harness container
   └─ HTTPS outbound request
        └─ Cloudflare Access service-auth policy
             └─ Cloudflare Tunnel connector on AI laptop
-                 └─ http://localhost:8000
+                 └─ http://127.0.0.1:8000
                       └─ QuantaEdge FastAPI /compat/v1
                            └─ existing Model Gateway → native Ollama
 ~~~
@@ -92,12 +92,12 @@ The assistant text should be present in $response.choices[0].message.content.
 
 ## 3. Protect the Cloudflare route for Harness
 
-The Cloudflare Tunnel connector must run on the AI laptop and forward ai-api.quantaedge.in to http://localhost:8000. Keep the API listener on 127.0.0.1:8000.
+The cloudflared container runs on the AI laptop with Docker Desktop host networking and forwards harness-ai-api.quantaedge.in to http://127.0.0.1:8000. Keep the API listener on 127.0.0.1:8000. Use a separate Cloudflare Access application for harness-ai-api.quantaedge.in; do not apply the Harness-only service-token policy to ai-api.quantaedge.in unless all other server-side callers also have Access tokens. Setup: ops/cloudflared/README.md.
 
 Use a dedicated Cloudflare Access service token for this Harness container in addition to the QuantaEdge API key:
 
 1. In Cloudflare Zero Trust, open **Access → Service credentials → Service Tokens** and create a token named deepseek-harness-ai-laptop.
-2. Open the existing self-hosted Access application for ai-api.quantaedge.in. Add a **Service Auth** policy that includes only this new service token. Preserve existing approved application-backend policies; do not replace them with a broad bypass or allow-all rule.
+2. Create a self-hosted Access application for harness-ai-api.quantaedge.in only. Add a **Service Auth** policy that includes only this new service token. Do not apply this Harness-only policy to ai-api.quantaedge.in, which is reserved for the approved QuantaEdge backend clients.
 3. Keep the generated Client ID and Client Secret private. Do not paste either value into this repository, a chat, a Dockerfile, or the agent's workspace.
 
 Cloudflare Access checks the service-token headers first. QuantaEdge then independently checks the Authorization: Bearer key and its scopes. This is intentional two-layer authentication.
@@ -112,7 +112,7 @@ Open Harness **Settings → Models → Add model provider → Custom model API**
 |---|---|
 | Provider ID | quantaedge |
 | Display name | QuantaEdge AI |
-| Base URL | https://ai-api.quantaedge.in/compat/v1 |
+| Base URL | https://harness-ai-api.quantaedge.in/compat/v1 |
 | API protocol | OpenAI Chat Completions |
 | API key | The rotated/dedicated deepseek-harness API key |
 
@@ -166,7 +166,7 @@ qwen3.5-teacher-2b
 
 Select it and start a new session with a simple prompt. This end-to-end test verifies the container's outbound HTTPS path, Cloudflare service-token policy, QuantaEdge bearer authentication, model discovery, and inference.
 
-Do not use http://127.0.0.1:8000 or http://host.docker.internal:8000 as the Docker provider URL with the current loopback-only API binding. Do not publish the QuantaEdge API port to the host network as a workaround.
+The Docker cloudflared service uses host networking to reach the Windows API at 127.0.0.1:8000. Do not instead configure Harness to call http://127.0.0.1:8000 or http://host.docker.internal:8000. Do not publish the QuantaEdge API port to the LAN.
 
 ## Supported request surface
 
@@ -191,7 +191,7 @@ Tool-call transport is implemented, but reliable tool selection and execution de
 - QuantaEdge 403 JSON: check that the key has the required chat or models:read scope.
 - Model absent: use the logical profile ID qwen3.5-teacher-2b, not qwen3.5:2b-q4_K_M.
 - 503: confirm Ollama is running, the model is installed, and /ready reports the required services healthy.
-- Model discovery fails: verify the base URL is exactly https://ai-api.quantaedge.in/compat/v1, the Cloudflare tunnel targets http://localhost:8000, and the Access headers are applied to the quantaedge provider.
+- Model discovery fails: verify the base URL is exactly https://harness-ai-api.quantaedge.in/compat/v1, the Docker cloudflared tunnel targets http://127.0.0.1:8000 using host networking, and the Access headers are applied to the quantaedge provider.
 - Streaming appears buffered: verify the proxy does not buffer text/event-stream; the API emits Cache-Control: no-cache and X-Accel-Buffering: no.
 - Tool calls are absent or malformed: test the installed model's tool-use ability directly before enabling agent tools in a production workflow.
 

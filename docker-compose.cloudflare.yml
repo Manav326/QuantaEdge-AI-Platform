@@ -1,0 +1,27 @@
+# Optional tunnel connector. Host networking is required so the Windows
+# FastAPI service remains private on 127.0.0.1:8000.
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: quantaedge-cloudflared
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - tunnel
+      - --no-autoupdate
+      - run
+      - --token-file
+      - /run/secrets/cloudflare_tunnel_token
+    secrets:
+      - cloudflare_tunnel_token
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+
+secrets:
+  cloudflare_tunnel_token:
+    file: ${CLOUDFLARE_TUNNEL_TOKEN_FILE:-D:/QuantaEdgeAI/secrets/cloudflare-tunnel.token}

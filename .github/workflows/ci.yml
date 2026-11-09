@@ -21,3 +21,12 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m compileall -q app alembic
       - run: pytest -q
+      - name: Validate Docker Compose files
+        working-directory: .
+        env:
+          POSTGRES_PASSWORD: ci-only-compose-validation
+          CLOUDFLARE_TUNNEL_TOKEN_FILE: ${{ runner.temp }}/cloudflare-tunnel-token
+        run: |
+          touch "$CLOUDFLARE_TUNNEL_TOKEN_FILE"
+          docker compose -f docker-compose.yml config --quiet
+          docker compose -f docker-compose.yml -f docker-compose.cloudflare.yml config --quiet

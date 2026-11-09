@@ -4,11 +4,11 @@ Standalone, API-first AI server for QuantaEdge and other authorised applications
 
 ## Machine boundary
 
-- **This AI laptop:** native Windows FastAPI gateway, ARQ ingestion worker, native Ollama, PostgreSQL + pgvector and Redis (the latter two in Docker), knowledge retrieval, model registry and Cloudflare Tunnel connector.
+- **This AI laptop:** native Windows FastAPI gateway, ARQ ingestion worker, native Ollama, PostgreSQL + pgvector, Redis and the cloudflared tunnel connector (in Docker Desktop), knowledge retrieval and model registry.
 - **Other machine:** QuantaEdge web/mobile/admin applications and business database. Its backend calls `https://ai-api.quantaedge.in` over HTTPS.
 - **Not in Git:** model weights, Docker Desktop WSL virtual disk, database volumes, Redis data, uploaded documents, licensed NCERT files, secrets or backups.
 
-The API listens on `127.0.0.1:8000`. Cloudflare Tunnel on this same AI laptop forwards `ai-api.quantaedge.in` to that local address. Ollama listens on `127.0.0.1:11434` and is never exposed to the LAN or internet. DeepSeek Harness is configured as another client through the separate OpenAI-compatible `/compat/v1` surface; it uses the same Model Gateway and Ollama runtime.
+The API listens on `127.0.0.1:8000`. The cloudflared Docker container uses Docker Desktop host networking to forward `ai-api.quantaedge.in` and the separately Access-protected `harness-ai-api.quantaedge.in` to that local address. Ollama listens on `127.0.0.1:11434` and is never exposed to the LAN or internet. DeepSeek Harness is configured as another client through the separate OpenAI-compatible `/compat/v1` surface; it uses the same Model Gateway and Ollama runtime.
 
 ## Architecture
 
@@ -16,7 +16,7 @@ The API listens on `127.0.0.1:8000`. Cloudflare Tunnel on this same AI laptop fo
 flowchart TB
   APP[QuantaEdge backend on application machine]
   CF[Cloudflare edge: ai-api.quantaedge.in]
-  TUN[cloudflared on AI laptop]
+  TUN[cloudflared container · Docker host network]
   API[Native Windows FastAPI :8000]
   SEC[API authentication / scopes]
   ROUTE[Task router and policy layers]
@@ -37,7 +37,7 @@ flowchart TB
   WORK --> DB
 ```
 
-Running the API and worker natively on Windows is intentional: they can call Ollama through loopback without binding the unauthenticated Ollama API to a network interface. Docker Desktop runs only PostgreSQL and Redis, with host ports bound to loopback.
+Running the API and worker natively on Windows is intentional: they can call Ollama through loopback without binding the unauthenticated Ollama API to a network interface. Docker Desktop runs PostgreSQL, Redis and cloudflared. The cloudflared service is defined in the optional docker-compose.cloudflare.yml overlay and uses host networking (Docker Desktop 4.34+) to reach the API at localhost:8000 without changing the API bind. See ops/cloudflared/README.md.
 
 ## Layered configuration
 
@@ -153,7 +153,7 @@ The application machine remains authoritative for learner identity, institution 
 
 ## Cloudflare Tunnel
 
-Install `cloudflared` natively on Windows and configure `ai-api.quantaedge.in` to route to `http://localhost:8000`. See [`ops/cloudflared/README.md`](ops/cloudflared/README.md). The tunnel connector runs on the AI laptop, not on the application machine. Never tunnel Ollama (11434), PostgreSQL (5432) or Redis (6379).
+Create a remotely managed tunnel in Cloudflare and run the cloudflared connector in Docker Desktop using docker-compose.cloudflare.yml. See [`ops/cloudflared/README.md`](ops/cloudflared/README.md). The connector runs on the AI laptop, not on the application machine. Never tunnel Ollama (11434), PostgreSQL (5432), Redis (6379) or the Harness UI.
 
 ## Curriculum and rights boundary
 

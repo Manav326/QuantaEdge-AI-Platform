@@ -1,9 +1,8 @@
 name: quantaedge-ai-platform
 
-# On the Windows AI laptop, FastAPI and the ARQ worker run natively so they
-# can call Ollama at 127.0.0.1 without exposing Ollama on the network.
-# Docker runs only stateful infrastructure; Docker Desktop's WSL disk image
-# is configured separately under D:\QuantaEdgeAI\docker\desktop-data.
+# FastAPI, the ARQ worker and Ollama run natively on Windows.
+# PostgreSQL and Redis use loopback-only published ports.
+# cloudflared uses Docker Desktop host networking to reach Windows loopback.
 services:
   postgres:
     image: pgvector/pgvector:pg16
