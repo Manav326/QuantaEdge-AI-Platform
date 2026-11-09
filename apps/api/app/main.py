@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.settings import get_settings
-from app.routers import chat, embeddings, health, knowledge, learning, memories, models
+from app.routers import chat, embeddings, health, knowledge, learning, memories, models, openai_compat
 
 settings = get_settings()
 logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -23,7 +23,7 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 
 app = FastAPI(
     title="QuantaEdge AI Platform API",
-    version="0.1.0",
+    version="0.2.0",
     description="Standalone API-first AI service for QuantaEdge and authorised applications.",
     docs_url="/docs" if settings.environment == "development" else None,
     redoc_url=None,
@@ -36,6 +36,7 @@ app.include_router(embeddings.router)
 app.include_router(learning.router)
 app.include_router(memories.router)
 app.include_router(knowledge.router)
+app.include_router(openai_compat.router)
 
 
 @app.exception_handler(Exception)
