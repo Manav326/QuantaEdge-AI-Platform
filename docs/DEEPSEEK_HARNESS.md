@@ -12,7 +12,7 @@ Use the dedicated OpenAI-compatible surface:
 | Native Windows Harness process on the AI laptop | http://127.0.0.1:8000/compat/v1 |
 | Harness on another machine | https://harness-ai-api.quantaedge.in/compat/v1 |
 
-**For Docker Desktop, use the HTTPS Cloudflare Tunnel URL.** The cloudflared connector itself runs as a Docker container using Docker Desktop host networking (4.34+). The API intentionally remains bound to Windows 127.0.0.1:8000; in host network mode, cloudflared can reach that Windows loopback listener via 127.0.0.1:8000. Do not change the API to bind to 0.0.0.0 or publish port 8000. See ops/cloudflared/README.md for setup.
+**For Docker Desktop, use the HTTPS Cloudflare Tunnel URL.** The cloudflared connector itself runs as a Docker container using Docker Desktop host networking (4.34+), with its tunnel token stored in a Docker-managed named volume (not a Windows bind mount). The API intentionally remains bound to Windows 127.0.0.1:8000; in host network mode, cloudflared can reach that Windows loopback listener via 127.0.0.1:8000. Do not change the API to bind to 0.0.0.0 or publish port 8000. See ops/cloudflared/README.md for setup.
 
 The Docker path is:
 
