@@ -37,7 +37,7 @@ flowchart TB
   WORK --> DB
 ```
 
-Running the API and worker natively on Windows is intentional: they can call Ollama through loopback without binding the unauthenticated Ollama API to a network interface. Docker Desktop runs PostgreSQL, Redis and cloudflared. The cloudflared service is profile-gated and uses host networking (Docker Desktop 4.34+) to reach the API at localhost:8000 without changing the API bind. See ops/cloudflared/README.md.
+Running the API and worker natively on Windows is intentional: they can call Ollama through loopback without binding the unauthenticated Ollama API to a network interface. Docker Desktop runs PostgreSQL, Redis and cloudflared. The cloudflared service is defined in the optional docker-compose.cloudflare.yml overlay and uses host networking (Docker Desktop 4.34+) to reach the API at localhost:8000 without changing the API bind. See ops/cloudflared/README.md.
 
 ## Layered configuration
 
@@ -153,7 +153,7 @@ The application machine remains authoritative for learner identity, institution 
 
 ## Cloudflare Tunnel
 
-Create a remotely managed tunnel in Cloudflare and run the cloudflared connector in Docker Desktop using the cloudflare Compose profile. See [`ops/cloudflared/README.md`](ops/cloudflared/README.md). The connector runs on the AI laptop, not on the application machine. Never tunnel Ollama (11434), PostgreSQL (5432), Redis (6379) or the Harness UI.
+Create a remotely managed tunnel in Cloudflare and run the cloudflared connector in Docker Desktop using docker-compose.cloudflare.yml. See [`ops/cloudflared/README.md`](ops/cloudflared/README.md). The connector runs on the AI laptop, not on the application machine. Never tunnel Ollama (11434), PostgreSQL (5432), Redis (6379) or the Harness UI.
 
 ## Curriculum and rights boundary
 
