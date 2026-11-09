@@ -46,11 +46,23 @@ class OpenAIChatCompletionRequest(BaseModel):
     def validate_tools(self):
         if self.tool_choice not in (None, "none", "auto", "required") and not isinstance(self.tool_choice, dict):
             raise ValueError("tool_choice must be none, auto, required, or a function selector")
+        tool_names = set()
         for tool in self.tools or []:
             if tool.get("type") != "function" or not isinstance(tool.get("function"), dict):
                 raise ValueError("Only OpenAI function tools are supported")
-            if not tool["function"].get("name"):
+            name = tool["function"].get("name")
+            if not name:
                 raise ValueError("Function tools require a name")
+            tool_names.add(name)
+        if self.tool_choice == "required" and not tool_names:
+            raise ValueError("tool_choice=required needs at least one function tool")
+        if isinstance(self.tool_choice, dict):
+            function = self.tool_choice.get("function") or {}
+            selected_name = function.get("name")
+            if self.tool_choice.get("type") != "function" or not selected_name:
+                raise ValueError("Function tool_choice requires type=function and function.name")
+            if selected_name not in tool_names:
+                raise ValueError("tool_choice references a function not present in tools")
         return self
 
 
