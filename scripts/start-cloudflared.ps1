@@ -24,9 +24,10 @@ if ($LASTEXITCODE -ne 0) {
     throw "Docker token volume is missing. Run .\scripts\set-cloudflare-tunnel-token.ps1 to provision it."
 }
 
-& docker run --rm --mount "type=volume,source=$volume,target=/run/secrets,readonly" alpine:3.20 sh -c "test -s /run/secrets/cloudflare_tunnel_token"
+# Check readability as the non-root identity used by cloudflare/cloudflared.
+& docker run --rm --user 65532:65532 --mount "type=volume,source=$volume,target=/run/secrets,readonly" alpine:3.20 sh -c "test -s /run/secrets/cloudflare_tunnel_token && test -r /run/secrets/cloudflare_tunnel_token"
 if ($LASTEXITCODE -ne 0) {
-    throw "The Docker-managed tunnel-token volume is empty or unreadable. Re-run set-cloudflare-tunnel-token.ps1."
+    throw "The tunnel token is missing or unreadable by cloudflared UID 65532. Re-run set-cloudflare-tunnel-token.ps1."
 }
 
 Write-Host "Starting the Cloudflare Tunnel connector in Docker..." -ForegroundColor Green
