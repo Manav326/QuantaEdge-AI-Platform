@@ -12,8 +12,8 @@ services:
       - run
       - --token-file
       - /run/secrets/cloudflare_tunnel_token
-    secrets:
-      - cloudflare_tunnel_token
+    volumes:
+      - cloudflare_tunnel_token:/run/secrets:ro
     read_only: true
     cap_drop:
       - ALL
@@ -22,6 +22,7 @@ services:
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=16m
 
-secrets:
+volumes:
   cloudflare_tunnel_token:
-    file: ${CLOUDFLARE_TUNNEL_TOKEN_FILE:-D:/QuantaEdgeAI/secrets/cloudflare-tunnel.token}
+    external: true
+    name: quantaedge-cloudflare-tunnel-token
