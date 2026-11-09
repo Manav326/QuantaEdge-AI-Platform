@@ -11,7 +11,7 @@ This repository runs cloudflared as a Docker Desktop container. FastAPI remains 
 - Enhanced Container Isolation is disabled. Docker Desktop host networking is incompatible with it.
 - Docker Desktop is signed in where required by the installed version.
 
-Host networking shares the host network namespace with the cloudflared container. The connector can consequently reach other services bound to host loopback, not only FastAPI. The Compose service is profile-gated, drops all Linux capabilities, uses no-new-privileges and a read-only root filesystem. Do not run untrusted containers with host networking.
+Host networking shares the host network namespace with the cloudflared container. The connector can consequently reach other services bound to host loopback, not only FastAPI. The optional connector is defined in docker-compose.cloudflare.yml, drops all Linux capabilities, uses no-new-privileges and a read-only root filesystem. Do not run untrusted containers with host networking.
 
 ## 1. Create a remotely managed tunnel
 
@@ -25,10 +25,10 @@ Cloudflare recommends remotely managed tunnels for Docker deployments.
 
 | Hostname | Service URL | Purpose |
 |---|---|---|
-| ai-api.quantaedge.in | http://localhost:8000 | QuantaEdge backend and other approved server-side clients |
-| harness-ai-api.quantaedge.in | http://localhost:8000 | Dedicated Harness endpoint protected by Cloudflare Access |
+| ai-api.quantaedge.in | http://127.0.0.1:8000 | QuantaEdge backend and other approved server-side clients |
+| harness-ai-api.quantaedge.in | http://127.0.0.1:8000 | Dedicated Harness endpoint protected by Cloudflare Access |
 
-The dashboard creates the required DNS records for the tunnel. Keep FastAPI's listener at 127.0.0.1:8000. Because cloudflared uses Docker host networking, localhost:8000 is the Windows host's loopback listener.
+The dashboard creates the required DNS records for the tunnel. Keep FastAPI's listener at 127.0.0.1:8000. Because cloudflared uses Docker host networking, 127.0.0.1:8000 is the Windows host's loopback listener.
 
 Do not create routes to Ollama (11434), PostgreSQL (5432), Redis (6379), Docker's API, or the Harness web UI.
 
@@ -127,7 +127,7 @@ Do not print or paste the key or either Access value into shared logs or chat.
 
 - DNS name cannot be resolved: check that the published application route was saved and its DNS record exists.
 - Tunnel shows down or inactive: check Docker Desktop is running, host networking is enabled, the token file exists, and cloudflared logs.
-- Cloudflare 502: verify the API is running and the cloudflared container can access http://localhost:8000 using host networking.
+- Cloudflare 502: verify the API is running and the cloudflared container can access http://127.0.0.1:8000 using host networking.
 - Cloudflare 403 HTML: check the Access application hostname, Service Auth policy, and both CF-Access headers.
 - QuantaEdge 401 JSON: check the dedicated Bearer API key and API process restart after .env changes.
 - QuantaEdge 403 JSON: check the service key has the required chat or models:read scope.
