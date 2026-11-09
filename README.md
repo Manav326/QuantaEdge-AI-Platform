@@ -8,7 +8,7 @@ Standalone, API-first AI server for QuantaEdge and other authorised applications
 - **Other machine:** QuantaEdge web/mobile/admin applications and business database. Its backend calls `https://ai-api.quantaedge.in` over HTTPS.
 - **Not in Git:** model weights, Docker Desktop WSL virtual disk, database volumes, Redis data, uploaded documents, licensed NCERT files, secrets or backups.
 
-The API listens on `127.0.0.1:8000`. Cloudflare Tunnel on this same AI laptop forwards `ai-api.quantaedge.in` to that local address. Ollama listens on `127.0.0.1:11434` and is never exposed to the LAN or internet.
+The API listens on `127.0.0.1:8000`. Cloudflare Tunnel on this same AI laptop forwards `ai-api.quantaedge.in` to that local address. Ollama listens on `127.0.0.1:11434` and is never exposed to the LAN or internet. DeepSeek Harness is configured as another client through the separate OpenAI-compatible `/compat/v1` surface; it uses the same Model Gateway and Ollama runtime.
 
 ## Architecture
 
@@ -132,7 +132,7 @@ Check local services:
 .\scripts\check.ps1
 ```
 
-Local API docs: `http://127.0.0.1:8000/docs`. API liveness: `http://127.0.0.1:8000/health`. Authenticated readiness: `http://127.0.0.1:8000/ready`.
+Local API docs: `http://127.0.0.1:8000/docs`. API liveness: `http://127.0.0.1:8000/health`. Authenticated readiness: `http://127.0.0.1:8000/ready`. Harness integration and setup: [docs/DEEPSEEK_HARNESS.md](docs/DEEPSEEK_HARNESS.md).
 
 ## API contract overview
 
@@ -185,7 +185,7 @@ The downloader reads only complete books already published in the QuantaEdge GHC
 
 ## Current scope and release status
 
-This is an initial development baseline: API gateway, logical model routing, Ollama provider, 1,024-dimension embedding schema, knowledge ingestion queue, curriculum-filtered vector retrieval, source metadata, scoped API keys and Windows lifecycle scripts. Learner memory lifecycle, hybrid search, reranking, vision ingestion, full evaluation suite, rate limiting, streaming SSE and production observability remain planned work. Do not use real learner or confidential data until the security release gates in `SECURITY.md` are implemented and reviewed.
+This is an initial development baseline: API gateway, logical model routing, Ollama provider, 1,024-dimension embedding schema, knowledge ingestion queue, curriculum-filtered vector retrieval, source metadata, scoped API keys and Windows lifecycle scripts. Hybrid search, reranking, vision ingestion, full evaluation suite, rate limiting and production observability remain planned work. The OpenAI-compatible Harness surface includes non-streaming and SSE chat plus tool-call transport; actual tool-use quality still requires evaluation of the installed model. Do not use real learner or confidential data until the security release gates in `SECURITY.md` are implemented and reviewed.
 
 ## Development checks
 
