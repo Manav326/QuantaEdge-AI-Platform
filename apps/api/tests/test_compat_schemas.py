@@ -58,3 +58,25 @@ def test_only_single_choice_is_supported():
             n=2,
             messages=[{"role": "user", "content": "Hello"}],
         )
+
+
+def test_function_tool_choice_must_reference_a_declared_tool():
+    with pytest.raises(ValidationError):
+        OpenAIChatCompletionRequest(
+            model="qwen3.5-teacher-2b",
+            messages=[{"role": "user", "content": "Search."}],
+            tools=[{
+                "type": "function",
+                "function": {"name": "search", "parameters": {"type": "object"}},
+            }],
+            tool_choice={"type": "function", "function": {"name": "read"}},
+        )
+
+
+def test_required_tool_choice_needs_tools():
+    with pytest.raises(ValidationError):
+        OpenAIChatCompletionRequest(
+            model="qwen3.5-teacher-2b",
+            messages=[{"role": "user", "content": "Search."}],
+            tool_choice="required",
+        )
