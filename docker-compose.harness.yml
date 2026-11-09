@@ -28,9 +28,9 @@ services:
     entrypoint: ["/bin/sh", "-lc"]
     command:
       - |
-        APP_HOST="$(hostname -i | awk '{print $1}')"
-        test -n "$APP_HOST"
-        exec npx --yes @deepseek-ai/dsh web --no-open --host "$APP_HOST" --port 3080 --public-url http://127.0.0.1:3080 --trusted-host 127.0.0.1:3080
+        APP_HOST="$$(hostname -i | cut -d' ' -f1)"
+        test -n "$$APP_HOST"
+        exec npx --yes @deepseek-ai/dsh web --no-open --host "$$APP_HOST" --port 3080 --public-url http://127.0.0.1:3080 --trusted-host 127.0.0.1:3080
     environment:
       HOME: /home/node
       DSH_HOME: /home/node/.dsh
