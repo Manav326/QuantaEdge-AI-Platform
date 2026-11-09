@@ -28,7 +28,7 @@ def _inference_overrides(payload: OpenAIChatCompletionRequest) -> dict[str, Any]
     if output_limit is not None:
         overrides["num_predict"] = output_limit
     if payload.stop is not None:
-        overrides["stop"] = payload.stop
+        overrides["stop"] = [payload.stop] if isinstance(payload.stop, str) else payload.stop
     if payload.seed is not None:
         overrides["seed"] = payload.seed
     if payload.response_format:
