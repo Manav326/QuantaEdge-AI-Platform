@@ -1,3 +1,5 @@
+# Optional tunnel connector. Host networking is required so the Windows
+# FastAPI service remains private on 127.0.0.1:8000.
 services:
   cloudflared:
     image: cloudflare/cloudflared:latest
