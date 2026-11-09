@@ -1,0 +1,70 @@
+# Optional DeepSeek Harness browser UI.
+# The UI is reachable only through Windows loopback at http://127.0.0.1:3080.
+# It has its own bridge network and does not share the cloudflared host network.
+services:
+  harness-init:
+    image: node:24-bookworm-slim
+    container_name: quantaedge-harness-init
+    user: "0:0"
+    network_mode: none
+    restart: "no"
+    command:
+      - /bin/sh
+      - -lc
+      - >
+        mkdir -p /home/node/.dsh /home/node/.npm /workspace
+        && chown -R 1000:1000 /home/node/.dsh /home/node/.npm /workspace
+    volumes:
+      - harness_home:/home/node/.dsh
+      - harness_npm_cache:/home/node/.npm
+      - harness_workspace:/workspace
+
+  deepseek-harness:
+    image: node:24-bookworm-slim
+    container_name: quantaedge-deepseek-harness
+    depends_on:
+      harness-init:
+        condition: service_completed_successfully
+    entrypoint: ["/bin/sh", "-lc"]
+    command:
+      - |
+        APP_HOST="$(hostname -i | awk '{print $1}')"
+        test -n "$APP_HOST"
+        exec npx --yes @deepseek-ai/dsh web --no-open --host "$APP_HOST" --port 3080 --public-url http://127.0.0.1:3080 --trusted-host 127.0.0.1:3080
+    environment:
+      HOME: /home/node
+      DSH_HOME: /home/node/.dsh
+      NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      NPM_CONFIG_FUND: "false"
+    working_dir: /workspace
+    user: "1000:1000"
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:3080:3080"
+    volumes:
+      - harness_home:/home/node/.dsh
+      - harness_npm_cache:/home/node/.npm
+      - harness_workspace:/workspace
+    networks:
+      - harness_ui
+
+volumes:
+  harness_home:
+    name: quantaedge-harness-home
+  harness_npm_cache:
+    name: quantaedge-harness-npm-cache
+  harness_workspace:
+    name: quantaedge-harness-workspace
+
+networks:
+  harness_ui:
+    name: quantaedge-harness-ui
+    driver: bridge
