@@ -8,7 +8,8 @@ Use the dedicated OpenAI-compatible surface:
 
 | Harness location | Base URL |
 |---|---|
-| Docker Desktop container on the AI laptop | https://harness-ai-api.quantaedge.in/compat/v1 |
+| Docker Desktop container (initial test) | https://ai-api.quantaedge.in/compat/v1 |
+| Docker Desktop container (after Access setup) | https://harness-ai-api.quantaedge.in/compat/v1 |
 | Native Windows Harness process on the AI laptop | http://127.0.0.1:8000/compat/v1 |
 | Harness on another machine | https://harness-ai-api.quantaedge.in/compat/v1 |
 
@@ -102,9 +103,45 @@ Use a dedicated Cloudflare Access service token for this Harness container in ad
 
 Cloudflare Access checks the service-token headers first. QuantaEdge then independently checks the Authorization: Bearer key and its scopes. This is intentional two-layer authentication.
 
-## 4. Configure the Docker Harness container
+## 4. Start the Docker Web UI
 
-### 4.1 Add the custom QuantaEdge provider
+The official Harness npm package runs inside a Node 24 container. No model runtime is installed in Harness; it remains a client of QuantaEdge AI.
+
+Update the repository and start the UI:
+
+~~~powershell
+cd D:\\QuantaEdgeAI\\projects\\knowledge-engine
+git pull origin main
+.\\scripts\\start-deepseek-harness.ps1
+~~~
+
+The launcher starts the official `@deepseek-ai/dsh` Web UI, waits for its one-time launch URL, and opens it in the Windows browser. Use that one-time URL rather than typing the bare port: it exchanges a launch token for a signed browser cookie. The UI is available at `http://127.0.0.1:3080`; port 3080 is published on loopback only and is not routed through Cloudflare.
+
+Harness settings, credentials, sessions, npm cache, and workspace are stored in Docker-managed volumes:
+
+- `quantaedge-harness-home`: settings, provider credentials, sessions, and profile configuration.
+- `quantaedge-harness-npm-cache`: npm package cache.
+- `quantaedge-harness-workspace`: the agent's isolated workspace.
+
+The Compose file does not mount the QuantaEdge repository, its `.env`, the Docker socket, or Windows user folders into the agent. In the first UI session, choose `/workspace` as the workspace. Keep the UI local; do not publish it as a Cloudflare hostname.
+
+To stop the UI without deleting its data:
+
+~~~powershell
+.\\scripts\\stop-deepseek-harness.ps1
+~~~
+
+To inspect startup output:
+
+~~~powershell
+docker logs quantaedge-deepseek-harness --tail 80
+~~~
+
+The Harness UI uses a dedicated bridge network, not the connector's host network. Its requests to QuantaEdge go through the HTTPS tunnel URL.
+
+## 5. Configure the Docker Harness container
+
+### 5.1 Add the custom QuantaEdge provider
 
 Open Harness **Settings → Models → Add model provider → Custom model API** and enter:
 
@@ -128,7 +165,7 @@ Add this model manually if model discovery is not offered or does not list it:
 
 Save the provider. Harness stores the API key in its managed credential store under $DSH_HOME; do not put it in Compose YAML or the workspace.
 
-### 4.2 Add the Cloudflare Access headers to the Harness profile
+### 5.2 Add the Cloudflare Access headers to the Harness profile
 
 Harness supports deployment-level provider headers in the profile's cordis.patch.yml. The default dsh web profile is web, so edit:
 
@@ -150,13 +187,13 @@ Add or merge the following provider entry. Replace both placeholders locally wit
 
 If the file already has an llm-pi-ai entry, merge the providers.quantaedge.headers fields into that entry. Do not add a duplicate llm-pi-ai item or discard other configured providers/options. If Harness runs with a custom profile, use that profile's directory instead of web.
 
-The profile lives in the persistent Harness home volume (the container's DSH_HOME, commonly /home/node/.dsh for Node-based images), **not** in the agent workspace. The two header values are stored as plain text in this file: protect the volume with host access controls and encrypted backups, and never mount it into the agent workspace. These headers are applied to model discovery and inference requests. Harness re-reads profile configuration on the next request, so a restart is not normally needed.
+The profile lives in the persistent Harness home volume (the container's DSH_HOME at /home/node/.dsh), **not** in the agent workspace. The two header values are stored as plain text in this file: protect the volume with host access controls and encrypted backups, and never mount it into the agent workspace. These headers are applied to model discovery and inference requests. Harness re-reads profile configuration on the next request, so a restart is not normally needed.
 
-### 4.3 Keep the Harness web UI local
+### 5.3 Keep the Harness web UI local
 
 Publish the Harness UI only on the Docker host's loopback interface, for example 127.0.0.1:3080:3080 if that is the port used by your image. Do not expose the Harness web UI to the public internet or an untrusted LAN. The Harness agent can run tools and modify files, so mount only the workspace it is authorised to access; never mount the QuantaEdge repository's .env or the wider AI-laptop data folders into that workspace.
 
-### 4.4 Verify from Harness itself
+### 5.4 Verify from Harness itself
 
 In Settings → Models, use **Fetch available models**. The provider should list:
 
@@ -195,4 +232,4 @@ Tool-call transport is implemented, but reliable tool selection and execution de
 - Streaming appears buffered: verify the proxy does not buffer text/event-stream; the API emits Cache-Control: no-cache and X-Accel-Buffering: no.
 - Tool calls are absent or malformed: test the installed model's tool-use ability directly before enabling agent tools in a production workflow.
 
-This document describes the API integration. It does not claim that the Cloudflare Access policy, service token, tunnel, or Harness UI have been deployed and runtime-verified. Complete the checks in section 4.4 before treating the integration as connected.
+This document describes the API integration. The local Docker Web UI has a dedicated startup overlay; runtime verification still requires completing the UI startup and model test. The Cloudflare Access policy and service token also require dashboard configuration before using the Access-protected Harness hostname.
