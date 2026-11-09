@@ -30,3 +30,4 @@ jobs:
           touch "$CLOUDFLARE_TUNNEL_TOKEN_FILE"
           docker compose -f docker-compose.yml config --quiet
           docker compose -f docker-compose.yml -f docker-compose.cloudflare.yml config --quiet
+          docker compose -f docker-compose.yml -f docker-compose.harness.yml config --quiet
